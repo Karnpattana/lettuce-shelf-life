@@ -1,0 +1,25 @@
+# Data (large files — do not commit)
+data/raw/
+data/segmented/
+data/features.xlsx
+data/features_partial.csv
+data/segment_issues.csv
+
+# Models
+models/*.pkl
+models/*.pt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Results (keep only final in release tag)
+results/trajectory_plots/
+*.log
+
+# IDE
+.vscode/
+.idea/
