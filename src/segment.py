@@ -4,12 +4,13 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from scipy.ndimage import binary_fill_holes
 from tqdm import tqdm
 
 from src.preprocess import preprocess_pipeline
 
 # HSV range สำหรับ lettuce — ขยาย H ลงถึง 10° เพื่อรับใบน้ำตาลจัด D7–D8
-# V > 25 กรองพื้นหลังดำออก (threshold ต่ำกว่า 30 เพื่อรับใบที่คล้ำมาก)
+# V > 25 กรองพื้นหลังดำออก (พื้นหลัง V ≈ 0, ใบที่มืดสุดยัง V > 25)
 HSV_H_MIN = 10   # hue lower bound (degrees / 2 ใน OpenCV = 5)
 HSV_H_MAX = 90   # hue upper bound (degrees / 2 ใน OpenCV = 45)
 HSV_V_MIN = 25   # brightness lower bound
@@ -47,19 +48,19 @@ def segment_lettuce(img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     # AND ทั้ง 2 mask
     combined = cv2.bitwise_and(brightness_mask, color_mask)
 
-    # Morphological opening (5x5) — กำจัด noise เล็ก
+    # Morphological opening (5x5) — กำจัด noise จุดเล็กนอกใบ
     kernel_open = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     opened = cv2.morphologyEx(combined, cv2.MORPH_OPEN, kernel_open)
 
-    # Morphological closing (7x7) — อุดรูในใบ
-    kernel_close = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-    closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel_close)
+    # หา largest connected component — ตัด noise นอกใบออก
+    largest = _largest_component(opened)
 
-    # หา largest connected component
-    mask = _largest_component(closed)
+    # Fill holes ทั้งหมดในใบ (เงา, รูเล็ก ทุกขนาด) ด้วย binary_fill_holes
+    # ดีกว่า closing เพราะครอบคลุมทุกขนาดรู ไม่ต้องเดา kernel size
+    filled = binary_fill_holes(largest > 0).astype(np.uint8) * 255
 
-    cropped = cv2.bitwise_and(img, img, mask=mask)
-    return mask, cropped
+    cropped = cv2.bitwise_and(img, img, mask=filled)
+    return filled, cropped
 
 
 def _largest_component(binary: np.ndarray) -> np.ndarray:

@@ -66,24 +66,40 @@
 
 ## Phase 1 — Image Preprocessing + Segmentation
 **วันที่:** 2026-05-12  
-**Git tag:** `phase-1-done`
+**Git tag:** `phase-1-done` (เดิม) → ต้อง re-run + tag ใหม่หลัง segment.py แก้
 
 ### สิ่งที่ทำ
 - **Step 1.1** `src/preprocess.py`: `load_image` (BGR→RGB), `resize_with_padding` (512×512 pad ดำ), `denoise` (Gaussian 5×5 σ=1)
-- **Step 1.2** `src/segment.py`: HSV mask H=[10°,90°] + V>25 → AND → opening(5×5) → closing(7×7) → largest component
+- **Step 1.2** `src/segment.py`: HSV mask H=[10°,90°] + V>25 → opening(5×5) → largest component → **binary_fill_holes**
 - **Step 1.3** `notebooks/00_segment_check.ipynb`: สุ่ม 5 ภาพ/Day + ภาพใน issues log
 - **Step 1.4** edge cases: `area_ratio < 5%` → flag, GOK06 D6 / GOK10 D1 (leaf loss) → log
 
-### ผลการรัน
-- Segmented **2,920 / 2,920 images** (100%), **0 ภาพ low_confidence_area**
-- Issues log: **16 แถว** ล้วนเป็น "known leaf loss" (GOK06 D6: 8 ภาพ, GOK10 D1: 8 ภาพ) — ตัดได้แต่ flag ไว้
+### การแก้ไข segment.py (หลัง visual check)
+- ปัญหา: เงาในใบถูกตัดออกเป็นพื้นหลัง (รูเล็กกระจายทั่วใบ)
+- แก้: เปลี่ยนจาก `closing kernel` → `binary_fill_holes` (scipy)
+  - `binary_fill_holes` อุดรูทุกขนาดในใบโดยไม่ต้องเดา kernel size
+  - Pipeline ใหม่: HSV mask → opening(5×5) → largest component → binary_fill_holes
+- ผลทดสอบ (`_test_segment.py`): mask ขาวทึบสม่ำเสมอ ไม่มีรู ✅
 
-### Acceptance ผ่าน
-- ✅ `python -m src.segment` รันเสร็จไม่ error
-- ✅ masks + cropped ครบ 2,920 ไฟล์ ทุกภาพ 512×512
-- ✅ `segment_issues.csv` พร้อม (16 flagged known cases)
-- ✅ มีรายงาน: "Segmented 2920 / 2920 images, 0 flagged"
-- ⏳ ดูตา 40–50 ภาพ ใน segment_check notebook (ทำหลัง commit)
+### ⚠️ งานค้าง — ต้องทำต่อในแชทหน้า
+1. **re-run `python -m src.segment`** ทั้ง 2,920 ภาพด้วย segment.py เวอร์ชันใหม่
+   - ไฟล์ใน `data/segmented/` ยังเป็นเวอร์ชันเก่า (closing 7×7, มีรู)
+   - รันแล้วจะ overwrite ทับอัตโนมัติ
+2. **ดูตา 40–50 ภาพ** ใน `notebooks/00_segment_check.ipynb` หลัง re-run
+3. **commit** หลัง re-run เสร็จ + tag `phase-1-done` ใหม่
+
+### วิธีเริ่มต่อ (แชทหน้า)
+```
+python -m src.segment
+```
+แล้วเปิด `notebooks/00_segment_check.ipynb` ดูภาพ ถ้าโอเค → Phase 2
+
+### Acceptance (ยังไม่ครบ)
+- ✅ `src/preprocess.py` และ `src/segment.py` เขียนเสร็จ
+- ✅ `notebooks/00_segment_check.ipynb` เขียนเสร็จ
+- ✅ `segment_issues.csv` พร้อม (16 known leaf-loss)
+- ⏳ re-run segment ด้วยโค้ดใหม่
+- ⏳ ดูตา 40–50 ภาพ → 90%+ ถูก
 
 ---
 
