@@ -4,16 +4,17 @@ group,day,session,time,temperature_min,temperature_max,notes
 01-10,1,E,22:00,29.5,30.0,
 01-10,2,M,12:00,31.0,32.0,
 01-10,2,E,22:00,29.0,29.5,
-01-10,3,M,12:00,,,missing session (no photos)
+01-10,3,M,12:00,,,temperature unknown — add when available
 01-10,3,E,21:00,29.0,30.0,
 01-10,4,M,12:00,32.0,33.0,
-01-10,4,E,,,missing session (no photos)
+01-10,4,E,,,temperature unknown — add when available
 01-10,5,M,12:00,31.5,32.0,
 01-10,5,E,22:00,29.5,30.0,
 01-10,6,M,12:00,31.0,31.5,gok06 lost small leaf
 01-10,6,E,22:00,29.0,29.5,
 01-10,7,M,12:00,32.0,33.0,
 01-10,7,E,23:00,29.0,30.0,
+01-10,8,M,12:00,,,temperature unknown — add when available
 11-30,0,E,23:00,28.0,28.5,group 11-30 starts 2 days after group 01-10 (their D0 = group 01-10 D2)
 11-30,1,M,12:00,31.0,32.0,
 11-30,1,E,22:00,29.0,29.5,
