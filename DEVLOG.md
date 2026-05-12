@@ -223,7 +223,30 @@ python -m src.segment
 ---
 
 ## Phase 5 — Grade Mapping & Threshold Calibration
-*(รอ Phase 4)*
+**วันที่:** 2026-05-13 (เริ่ม)
+
+### สิ่งที่ทำแล้ว
+- `src/grade.py`: day_to_grade, evaluate_grades, calibrate_thresholds (grid search)
+- `notebooks/04_grade.ipynb`: เขียนเสร็จ รอรัน
+
+### Grade Definition (ตัดสินใจแล้ว)
+| Grade | Day | ความหมาย |
+|-------|-----|---------|
+| A | D0–D1 | สดเลย ไม่มีเหลือง |
+| B | D2–D3 | เหลืองนิดเดียว |
+| C | D4–D5 | เริ่มเหลือง |
+| D | D6–D8 | เหลือง เริ่มกินไม่ได้ |
+
+### การตัดสินใจ
+- ใช้ threshold จาก predicted_day (ไม่ใช่ rule จาก feature โดยตรง)
+- ใช้ threshold เดียวกันทั้ง COS และ GOK
+- Default boundary: A/B=1.5, B/C=3.5, C/D=5.5
+- จะ calibrate ด้วย grid search ใน notebook
+
+### ⚠️ งานค้าง
+- รัน 04_grade.ipynb ทุก cell
+- กรอก notes ในเซลล์สรุป
+- commit + tag phase-5-done
 
 ---
 
