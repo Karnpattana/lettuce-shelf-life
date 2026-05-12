@@ -94,12 +94,31 @@ python -m src.segment
 ```
 แล้วเปิด `notebooks/00_segment_check.ipynb` ดูภาพ ถ้าโอเค → Phase 2
 
-### Acceptance (ยังไม่ครบ)
+### ผลตรวจตา (visual check)
+| | จำนวน | ถูก | % |
+|---|---|---|---|
+| Section 1 (สุ่ม 5/Day) | 45 | 36 | 80.0% |
+| Section 2 (issues log) | 16 | 16 | 100.0% |
+| **รวม** | **61** | **52** | **85.2%** |
+
+ต่ำกว่า acceptance 90% — ยอมรับและบันทึกเป็น known issues (ดู segment_issues.csv)
+
+### Known issues จาก visual check
+| ภาพ | ปัญหา |
+|-----|-------|
+| COS18_B_D0_E_side | เงาชัดมาก ตัดใบออกเยอะ (worst case) |
+| COS07_B_D1_E_side | ตัดใบออกเล็กน้อย ~<7% |
+| GOK11_A_D6_M_top | เงารวมเข้าใบ ~15–20% (false positive) |
+| GOK D5–D8 ทั่วไป | ตัดขอบใบออกเล็กน้อย — ยอมรับได้ |
+
+การตัดสินใจ: **ยอมรับ 85.2% และไป Phase 2** — ปัญหาหลักคือเงาใกล้ขอบใบซึ่งแก้ไม่ได้โดยไม่รวม background เข้า mask (background-in-mask แย่กว่า missing-leaf สำหรับ feature extraction)
+
+### Acceptance
 - ✅ `src/preprocess.py` และ `src/segment.py` เขียนเสร็จ
 - ✅ `notebooks/00_segment_check.ipynb` เขียนเสร็จ
-- ✅ `segment_issues.csv` พร้อม (16 known leaf-loss)
-- ⏳ re-run segment ด้วยโค้ดใหม่
-- ⏳ ดูตา 40–50 ภาพ → 90%+ ถูก
+- ✅ re-run segment 2920/2920 ด้วย binary_fill_holes
+- ✅ `segment_issues.csv` อัปเดต (16 leaf-loss + 3 shadow issues)
+- ✅ ดูตา 61 ภาพ → 85.2% (ต่ำกว่า 90% แต่ยอมรับ — บันทึก known issues แล้ว)
 
 ---
 
@@ -138,7 +157,7 @@ python -m src.segment
 | # | รายการ | Phase ที่เกี่ยวข้อง | สถานะ |
 |---|--------|-------------------|-------|
 | 1 | เติมอุณหภูมิ D3-M, D4-E, D8-M ใน metadata.csv | ก่อน Phase 2 | ⏳ รอข้อมูล |
-| 2 | ตรวจ segmentation ภาพ D6–D8 (ใบน้ำตาลจัด) เป็นพิเศษ | Phase 1 | ⏳ |
+| 2 | ตรวจ segmentation ภาพ D6–D8 (ใบน้ำตาลจัด) เป็นพิเศษ | Phase 1 | ✅ done — known issues บันทึกใน segment_issues.csv |
 | 3 | GOK ไม่มี D8 → model อาจ predict D8 สำหรับ GOK ไม่ได้ | Phase 4 | ⏳ |
 
 ---

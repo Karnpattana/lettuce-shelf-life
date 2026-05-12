@@ -55,8 +55,8 @@ def segment_lettuce(img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     # หา largest connected component — ตัด noise นอกใบออก
     largest = _largest_component(opened)
 
-    # Fill holes ทั้งหมดในใบ (เงา, รูเล็ก ทุกขนาด) ด้วย binary_fill_holes
-    # ดีกว่า closing เพราะครอบคลุมทุกขนาดรู ไม่ต้องเดา kernel size
+    # Fill holes ที่ถูกล้อมรอบสนิทด้วยใบ (เงาในใจกลางใบ)
+    # เงาใกล้ขอบใบที่ "รั่ว" ออกนอกจะไม่ถูกเติม — ยอมรับได้ดีกว่ารวม background
     filled = binary_fill_holes(largest > 0).astype(np.uint8) * 255
 
     cropped = cv2.bitwise_and(img, img, mask=filled)
