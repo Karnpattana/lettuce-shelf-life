@@ -153,7 +153,30 @@ python -m src.segment
 ---
 
 ## Phase 3 — EDA
-*(รอ Phase 2)*
+**วันที่:** 2026-05-13
+
+### สิ่งที่ทำ
+- `notebooks/02_eda.ipynb`: trend, boxplot, view comparison, outlier detection, scatter
+
+### ผล EDA
+| ประเด็น | สรุป |
+|--------|------|
+| Top features | a_mean, area_ratio, pct_green, pct_yellow, pct_brown |
+| view difference | minimal — top/side แทบทับกัน รวม view ได้ ไม่ต้องแยก model |
+| variety difference | ทิศทางเดียวกัน แต่ baseline ต่าง (GOK เขียวกว่า/area สูงกว่า) → ใช้ threshold แยกพันธุ์ |
+| outlier | 336 แถว (3×IQR) → flag ไว้ ไม่ drop |
+| L_mean | ไม่ monotonic พอ → feature เสริม หรือตัดออกใน Phase 4 |
+| pct_brown | สัญญาณเริ่มหลัง D4–D5 เท่านั้น — early indicator ไม่ดี |
+| core features | a_mean × area_ratio เห็น day gradient ชัดทั้ง 2 พันธุ์ |
+
+### การตัดสินใจสำคัญ
+- รวม top+side เป็น model เดียว (view difference minimal)
+- ต้องแยก threshold ตาม variety (baseline ต่าง)
+- outlier 336 แถว → flag ไว้ ให้ model จัดการ
+
+### Acceptance
+- ✅ 02_eda.ipynb รันครบทุก section
+- ✅ สรุป EDA กรอกครบ
 
 ---
 
