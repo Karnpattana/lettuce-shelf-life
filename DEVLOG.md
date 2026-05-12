@@ -333,9 +333,9 @@ streamlit run app.py
 
 | # | รายการ | Phase ที่เกี่ยวข้อง | สถานะ |
 |---|--------|-------------------|-------|
-| 1 | เติมอุณหภูมิ D3-M, D4-E, D8-M ใน metadata.csv | ก่อน Phase 2 | ⏳ รอข้อมูล |
+| 1 | เติมอุณหภูมิ D3-M, D4-E, D8-M ใน metadata.csv | ก่อน Phase 2 | ✅ ปิด — ใส่ placeholder (อุณหภูมิไม่ได้บันทึกจริง) temperature ไม่ได้เป็น feature ของ model จึงไม่กระทบผล |
 | 2 | ตรวจ segmentation ภาพ D6–D8 (ใบน้ำตาลจัด) เป็นพิเศษ | Phase 1 | ✅ done — known issues บันทึกใน segment_issues.csv |
-| 3 | GOK ไม่มี D8 → model อาจ predict D8 สำหรับ GOK ไม่ได้ | Phase 4 | ⏳ |
+| 3 | GOK ไม่มี D8 → model อาจ predict D8 สำหรับ GOK ไม่ได้ | Phase 4 | ✅ ปิด — เพิ่ม `gok_extrapolation` flag ใน inference.py และ warning ใน app.py เมื่อ GOK predicted_day > 6.5 |
 
 ---
 

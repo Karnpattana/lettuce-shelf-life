@@ -71,10 +71,14 @@ def predict(
     else:
         grade = str(day_to_grade(predicted_day))
 
+    # GOK ไม่มีภาพ D8 ใน training set — ถ้า predict > 6.5 คือ extrapolation
+    gok_extrapolation = (variety == "GOK") and (predicted_day > 6.5)
+
     return {
-        "predicted_day":  round(predicted_day, 2),
-        "grade":          grade,
-        "low_confidence": low_confidence,
-        "area_ratio":     round(area_ratio, 4),
-        "features":       {k: round(v, 4) for k, v in all_feats.items()},
+        "predicted_day":    round(predicted_day, 2),
+        "grade":            grade,
+        "low_confidence":   low_confidence,
+        "gok_extrapolation": gok_extrapolation,
+        "area_ratio":       round(area_ratio, 4),
+        "features":         {k: round(v, 4) for k, v in all_feats.items()},
     }

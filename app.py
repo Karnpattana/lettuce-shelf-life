@@ -117,6 +117,13 @@ if result["low_confidence"]:
         "ผลลัพธ์อาจไม่แม่นยำ ลองถ่ายภาพให้ผักอยู่ตรงกลางและเต็มเฟรมมากขึ้น"
     )
 
+if result["gok_extrapolation"]:
+    st.warning(
+        "⚠️ Extrapolation — ชุด training ของ GOK มีข้อมูลถึง D7 เท่านั้น (ไม่มี D8) "
+        f"ค่าที่ทำนายได้ ({result['predicted_day']:.1f} วัน) เกินช่วงที่โมเดลเคยเห็น "
+        "ผลลัพธ์ Grade D ยังถูกต้อง แต่ตัวเลขวันอาจคลาดเคลื่อน"
+    )
+
 # --- Feature breakdown ---
 with st.expander("ดู Feature ที่ใช้ในการประเมิน"):
     feats = result["features"]
