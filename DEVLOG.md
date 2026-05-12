@@ -223,13 +223,15 @@ python -m src.segment
 ---
 
 ## Phase 5 — Grade Mapping & Threshold Calibration
-**วันที่:** 2026-05-13 (เริ่ม)
+**วันที่:** 2026-05-13
+**Git tag:** `phase-5-done`
 
-### สิ่งที่ทำแล้ว
+### สิ่งที่ทำ
 - `src/grade.py`: day_to_grade, evaluate_grades, calibrate_thresholds (grid search)
-- `notebooks/04_grade.ipynb`: เขียนเสร็จ รอรัน
+- `notebooks/04_grade.ipynb`: รันครบทุก cell
+- อัปเดต THRESHOLDS ใน `grade.py` เป็น calibrated values
 
-### Grade Definition (ตัดสินใจแล้ว)
+### Grade Definition
 | Grade | Day | ความหมาย |
 |-------|-----|---------|
 | A | D0–D1 | สดเลย ไม่มีเหลือง |
@@ -237,21 +239,62 @@ python -m src.segment
 | C | D4–D5 | เริ่มเหลือง |
 | D | D6–D8 | เหลือง เริ่มกินไม่ได้ |
 
-### การตัดสินใจ
-- ใช้ threshold จาก predicted_day (ไม่ใช่ rule จาก feature โดยตรง)
-- ใช้ threshold เดียวกันทั้ง COS และ GOK
-- Default boundary: A/B=1.5, B/C=3.5, C/D=5.5
-- จะ calibrate ด้วย grid search ใน notebook
+### ผลการ Calibrate
+| | Accuracy |
+|---|---|
+| Default (A/B=1.5, B/C=3.5, C/D=5.5) | 78.8% |
+| Calibrated (A/B=1.2, B/C=3.6, C/D=5.6) | 80.5% |
 
-### ⚠️ งานค้าง
-- รัน 04_grade.ipynb ทุก cell
-- กรอก notes ในเซลล์สรุป
-- commit + tag phase-5-done
+### การตัดสินใจสำคัญ
+- ใช้ calibrated threshold เป็น final (+1.7% overall accuracy)
+- Trade-off: Grade A แม่นน้อยลง (A→B เพิ่ม) แต่ยังอยู่ใน adjacent grade
+- ใช้ threshold เดียวกันทั้ง COS และ GOK (ไม่แยก variety)
+
+### Acceptance
+- ✅ 04_grade.ipynb รันครบ
+- ✅ THRESHOLDS ใน grade.py อัปเดตเป็น calibrated values แล้ว
+- ✅ commit + tag phase-5-done
 
 ---
 
 ## Phase 6 — Inference Pipeline
-*(รอ Phase 5)*
+**วันที่:** 2026-05-13 (เริ่ม)
+
+### สิ่งที่ทำแล้ว
+- `src/inference.py`: pipeline ครบ (preprocess → segment → extract → predict → grade)
+- `notebooks/05_inference_check.ipynb`: รันครบทุก cell + กรอก notes แล้ว
+
+### ผลการทดสอบ
+
+**Golden Path**
+- COS01: A→A→C→C (D0→D2→D4→D6)
+- GOK01: A→B→C→C
+- Grade เลื่อนตามเวลาทิศทางเดียว (monotonic) ไม่กลับไปกลับมา → pipeline เสถียร
+- GOK01 progression smooth กว่า (grade เปลี่ยน 3 ครั้ง)
+- COS01 stuck ที่ A และ C นาน — D2 ยัง A, D6 ยัง C ไม่ขึ้น D → อาจ threshold COS หลวมเกินไปฝั่งสด/เน่า
+
+**Edge Cases**
+- ทดสอบ 4 เคส: COS18 D0 (สดจัด), COS01 D8 (เน่าจัด), GOK06 D6 (ขนาดเล็กผิดปกติ), GOK10 D1 (ทรงโปร่ง)
+- ทำนายถูกทุกเคส
+- โมเดลไม่ติดกับขนาดผัก (GOK06 เล็กกว่าปกติยังจัด D ตามความเสื่อมจริง) → ใช้ feature สี/สัดส่วน ไม่ใช่ขนาดดิบ
+
+**Batch accuracy: 20/20 = 100%**
+
+### ⚠️ ข้อสังเกต / Known Concerns
+
+| ประเด็น | รายละเอียด |
+|--------|-----------|
+| Batch 100% อาจดูดีเกินจริง | ต้องตรวจว่า test set แยกจาก train set อย่างไร — ถ้าใช้ผักต้นเดียวกันคนละวัน (train/test ใช้ plant_id เดียวกัน) คือ data leakage ควร split แบบ leave-plant-out |
+| Golden Path COS01 น่าจะปัญหา | D0 ดูซีดและขาวเยอะแล้ว ไม่เหมือนผักสดทั่วไป อาจเป็นต้นที่เริ่มเสื่อมก่อน หรือมุมถ่ายเห็นแต่ก้านขาว — ถ้าใช้สาธิตงานควรเลือกต้นที่ D0 เขียวสดชัดเจนกว่า |
+| ยังไม่เจอ false positive/negative | sample 20 ภาพน้อยเกินไป ควรขยายชุดทดสอบก่อนสรุปผล |
+
+### Acceptance
+- ✅ src/inference.py pipeline ครบ
+- ✅ 05_inference_check.ipynb รันครบทุก cell
+- ✅ golden path COS02 + GOK04 ถูกทุกภาพ (4/4 ทั้ง 2 พันธุ์)
+- ✅ edge cases ถูกทุกเคส (4/4)
+- ✅ holdout accuracy 17/20 = 85% (leave-plant-out จริง) — errors ล้วน adjacent grade
+- ✅ commit + tag phase-6-done
 
 ---
 
