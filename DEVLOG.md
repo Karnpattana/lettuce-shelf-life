@@ -181,7 +181,44 @@ python -m src.segment
 ---
 
 ## Phase 4 — Model Training
-*(รอ Phase 3)*
+**วันที่:** 2026-05-13
+
+### สิ่งที่ทำ
+- `src/model.py`: XGBoost regressor, GroupKFold(5) by plant_id, save/load
+- `notebooks/03_model.ipynb`: train, feature importance, pred vs actual, error by day
+- `models/xgb_model.json`: model ที่ refit บน data ทั้งหมด
+
+### ผล CV (GroupKFold 5)
+| Metric | Mean | Std |
+|--------|------|-----|
+| MAE | — | — |
+| RMSE | — | — |
+| R² | — | — |
+
+| Variety | MAE | RMSE | R² |
+|---------|-----|------|----|
+| COS | — | — | 0.888 |
+| GOK | — | — | 0.898 |
+
+### Feature Importance
+| Feature | Importance |
+|---------|-----------|
+| a_mean | ~46% |
+| pct_yellow | ~24% |
+| pct_brown | ~8% |
+| รวม top 3 | ~78% |
+| variety_enc | ต่ำสุด |
+
+### การตัดสินใจสำคัญ
+- **Regression + map → grade** (ไม่ train classifier ตรง)
+  เหตุผล: threshold ยังไม่ calibrate (Phase 5), ordinal order ถูกต้อง, ไม่ต้อง retrain ถ้าปรับ boundary
+- ไม่แยก model ตาม variety (R² ใกล้กันมาก)
+- Boundary effect D0/D7/D8 ยอมรับได้ในระดับ grade
+
+### Acceptance
+- ✅ src/model.py เขียนเสร็จ
+- ✅ 03_model.ipynb รันครบ
+- ✅ models/xgb_model.json บันทึกแล้ว
 
 ---
 
