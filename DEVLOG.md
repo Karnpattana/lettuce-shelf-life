@@ -123,7 +123,32 @@ python -m src.segment
 ---
 
 ## Phase 2 — Feature Extraction
-*(รอ Phase 1)*
+**วันที่:** 2026-05-12
+
+### สิ่งที่ทำ
+- `src/features/color.py`: color features ใน Lab* space (L/a/b mean+std, pct_green/yellow/brown)
+- `src/features/texture.py`: GLCM features (contrast, correlation, energy, homogeneity) จาก L* channel
+- `src/features/extract.py`: pipeline รวม → `data/features.csv`
+- `notebooks/01_feature_check.ipynb`: sanity check trends + correlation heatmap
+
+### ผล extract
+- 2,920 rows × 23 columns
+- NaN: temp_min/max 240 แถว (D3-M, D4-E, D8-M — รอเติม TODO #1)
+- features: filename, variety, plant_id, ab_group, day, session, view, L_mean, L_std, a_mean, a_std, b_mean, b_std, pct_green, pct_yellow, pct_brown, contrast, correlation, energy, homogeneity, area_ratio, temp_min, temp_max
+
+### ผล feature check
+| Feature | Corr กับ day | หมายเหตุ |
+|---------|-------------|---------|
+| a_mean | +0.86 | best single predictor |
+| area_ratio | -0.74 | ใบหดตัวตามวัน |
+| pct_yellow | +0.72 | |
+| pct_green | -0.68 | |
+| L_mean | +0.27 | non-linear — keep ไว้ให้ model จัดการ |
+| energy, homogeneity | ~0 | ตัดออกตอน Phase 4 |
+
+### Acceptance
+- ✅ features.csv 2920 rows ไม่มี NaN นอกจาก temp ที่ยังไม่มีข้อมูล
+- ✅ 01_feature_check.ipynb: trend สมเหตุสมผลทางชีววิทยา, top features ชัดเจน
 
 ---
 
