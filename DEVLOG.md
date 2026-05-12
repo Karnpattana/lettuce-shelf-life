@@ -298,8 +298,34 @@ python -m src.segment
 
 ---
 
-## Phase 7 — Demo UI (Optional)
-*(รอ Phase 6)*
+## Phase 7 — Demo UI
+**วันที่:** 2026-05-13
+**Git tag:** `phase-7-done`
+
+### สิ่งที่ทำ
+- `app.py`: Streamlit web app สำหรับสาธิต inference pipeline
+
+### ฟีเจอร์
+- อัปโหลดภาพ (.jpg/.png) + เลือกพันธุ์ (COS/GOK) ใน sidebar
+- Result card สีตาม grade: 🟢 A / 🟡 B / 🟠 C / 🔴 D พร้อม predicted day
+- แจ้งเตือน low_confidence ถ้า area_ratio < 5%
+- Expander แสดง feature breakdown (a_mean, pct_green/yellow/brown, area_ratio)
+- Sidebar มีตาราง grade reference
+
+### วิธีรัน
+```
+streamlit run app.py
+```
+เปิด http://localhost:8501
+
+### ผลทดสอบ
+- ทดสอบ 5 ภาพ (COS02 D0/D4/D6, GOK04 D0/D6) ผ่าน temp file pipeline
+- grade และ day ตรงกับผล Phase 6 ทุกเคส ไม่มี error
+
+### Acceptance
+- ✅ app.py รันขึ้น Streamlit ที่ port 8501
+- ✅ inference pipeline ทำงานถูกต้อง end-to-end ผ่าน UI
+- ✅ commit + tag phase-7-done
 
 ---
 
