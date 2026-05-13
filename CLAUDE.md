@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project State
 
-Phase 0–9 complete. All features implemented.
+Phase 0–9 complete + Phase 9b (texture model upgrade) complete.
 See `DEVLOG.md` for full decision log, known issues, and per-phase acceptance criteria.
 
 ## Commands
@@ -25,11 +25,24 @@ streamlit run app.py
 # Execute a notebook non-interactively
 .venv\Scripts\python.exe -m jupyter nbconvert --to notebook --execute --inplace notebooks/<name>.ipynb
 
+# Run automated test suite (60 tests, ~3 sec)
+pytest tests/ -v
+
 # Quick inference smoke-test
 python -c "from src.inference import predict; print(predict('data/raw/COS02_A_D0_E_side.jpg', 'COS'))"
 ```
 
-There are no automated tests. Acceptance is verified by running notebook cells and checking printed output.
+## Tests
+
+60 automated tests in `tests/` — run with `pytest tests/ -v`
+
+| ไฟล์ | ครอบคลุม |
+|------|---------|
+| `test_grade.py` | `day_to_grade()` boundary ทุกจุด, `predict_shelf_life()` status transitions |
+| `test_feature_contract.py` | FEATURE_COLS ครบ/ถูกลำดับ, extractor คืน finite values, empty mask → NaN |
+| `test_inference_golden.py` | golden regression: COS D0/D4/D8, GOK D0/D6 — skip ถ้าไม่มี data/raw/ |
+| `test_segment_edges.py` | black/white/red image → empty mask, green blob, low_confidence flag |
+| `test_no_plant_leakage.py` | GroupKFold ไม่มี plant_id ซ้ำ, dataset integrity (varieties, day range) |
 
 ## Architecture
 
@@ -55,7 +68,7 @@ image file
 | `THRESHOLDS` | `src/grade.py` | A/B=1.2, B/C=3.6, C/D=5.6 (calibrated Phase 5) |
 | `MARKETABILITY_DAY` | `src/grade.py` | `THRESHOLDS['B'][1]` = 3.6 |
 | `UNUSABLE_DAY` | `src/grade.py` | `THRESHOLDS['C'][1]` = 5.6 |
-| `FEATURE_COLS` | `src/model.py` | 10 features used by XGBoost |
+| `FEATURE_COLS` | `src/model.py` | 14 features (color × 9 + variety_enc + texture × 4) |
 | Lab* pixel thresholds | `src/features/__init__.py` | GREEN/YELLOW/BROWN_LAB_RANGE |
 
 ### inference.py output dict
@@ -81,7 +94,8 @@ image file
 
 ## Critical constraints
 
-- **Do not retrain `models/xgb_model.json`** unless explicitly asked — it is the final model refit on all 2,920 images.
+- **Do not retrain `models/xgb_model_texture.json`** unless explicitly asked — it is the final model (Phase 9b) refit on all 2,920 images with 14 features.
+- **`models/xgb_model.json` (old 10-feature model) is kept as backup only** — it is INCOMPATIBLE with current `FEATURE_COLS` (14 features) and will crash with `feature shape mismatch` if passed to `predict()` without also reverting `FEATURE_COLS`.
 - **Always use `GroupKFold` grouped by `plant_id`** for any new CV — splitting by image causes data leakage (multiple images per plant per day).
 - **GOK has no D8 images** — the model is extrapolating for GOK when predicted_day > 6.5. The `gok_extrapolation` flag handles this.
 - **Shelf life constants must derive from `THRESHOLDS`**, not be hardcoded independently. If `THRESHOLDS` changes, shelf life boundaries update automatically.

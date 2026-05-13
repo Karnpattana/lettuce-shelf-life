@@ -404,6 +404,61 @@ streamlit run app.py
 
 ---
 
+## Phase 9b — Texture Model Upgrade + Test Suite
+**วันที่:** 2026-05-14
+
+### สิ่งที่ทำ
+
+**Test Suite (60 tests)**
+- `tests/test_grade.py` (29 tests): boundary ทุกจุดของ `day_to_grade()` และ status transitions ของ `predict_shelf_life()`
+- `tests/test_feature_contract.py` (5 tests): ยืนยัน FEATURE_COLS ครบ/ถูกลำดับ, extractor คืน finite values, empty mask → NaN
+- `tests/test_inference_golden.py` (12 tests): golden regression บน COS D0/D4/D8 และ GOK D0/D6 — skip อัตโนมัติถ้าไม่มี data/raw/
+- `tests/test_segment_edges.py` (8 tests): degenerate inputs (all-black, all-white, two blobs, low_confidence flag)
+- `tests/test_no_plant_leakage.py` (6 tests): GroupKFold leakage guard + dataset integrity
+- เปลี่ยนชื่อ `_test_segment.py` → `scripts/segment_qc.py` (ไม่ใช่ test จริง)
+
+**Texture Model**
+- เพิ่ม `contrast`, `correlation`, `energy`, `homogeneity` เข้า `FEATURE_COLS` (10 → 14 features)
+- Retrain XGBoost บน data ทั้งหมด บันทึกเป็น `models/xgb_model_texture.json`
+- อัปเดต `DEFAULT_MODEL_PATH` ใน `src/inference.py` เป็นโมเดลใหม่
+
+### ผล CV เปรียบเทียบ (GroupKFold 5, 2,920 images)
+
+| Metric | Baseline (10 features) | + Texture (14 features) |
+|--------|----------------------|------------------------|
+| MAE mean | 0.5073 วัน | **0.4808 วัน** |
+| MAE std | 0.0560 | **0.0523** |
+| RMSE mean | 0.6610 | **0.6280** |
+| R² mean | 0.8927 | **0.9035** |
+| Grade accuracy | 79.73% | **80.55%** |
+
+### Golden values (xgb_model_texture.json)
+
+| รูป | predicted_day | grade | status |
+|-----|--------------|-------|--------|
+| COS01_A_D0_E_side.jpg | 0.42 | A | fresh |
+| COS01_A_D4_E_side.jpg | 4.15 | C | warning |
+| COS01_A_D8_M_side.jpg | 7.61 | D | expired |
+| GOK01_A_D0_E_side.jpg | 0.10 | A | fresh |
+| GOK01_A_D6_E_side.jpg | 5.69 | D | expired |
+
+### การตัดสินใจสำคัญ
+- **เก็บโมเดลเก่า `xgb_model.json` ไว้เป็น backup** ไม่ลบทิ้ง แต่ใช้ร่วมกับ FEATURE_COLS ปัจจุบัน (14 features) ไม่ได้ — จะ crash ด้วย `feature shape mismatch`
+- Texture features (GLCM) ถูก extract ใน Phase 2 แล้วแต่ไม่ได้ใส่ FEATURE_COLS ตอน Phase 4 เนื่องจาก feature importance ต่ำ (Phase 4 notes: energy/homogeneity ~0) — Phase 9b ทดลองใส่ทั้ง 4 ตัวแล้วได้ผลดีขึ้นจริง
+
+### สิ่งที่ค้นพบระหว่างเขียน test
+- HSV range [10°,90°] ของ `segment_lettuce()` ไม่รับ pure green (H=120°) โดยตั้งใจ เพราะใบผักบนพื้นดำมีโทนเหลือง-เขียว ไม่ใช่เขียวสด — เพิ่ม comment ใน `segment.py` แล้ว
+- `b_std` ถูก extract โดย `extract_color()` แต่ไม่อยู่ใน FEATURE_COLS — feature importance ต่ำ ตัดออกตอน feature selection Phase 4
+
+### Acceptance
+- ✅ 60/60 tests ผ่าน (3.4 วินาที)
+- ✅ `models/xgb_model_texture.json` บันทึกแล้ว
+- ✅ `DEFAULT_MODEL_PATH` เปลี่ยนเป็น texture model
+- ✅ golden tests อัปเดตค่าใหม่แล้ว
+- ✅ commit `dea3946`
+
+---
+
 ## Known Issues / TODO
 
 | # | รายการ | Phase ที่เกี่ยวข้อง | สถานะ |
@@ -422,3 +477,5 @@ streamlit run app.py
 | 2026-05-12 | D3-M / D4-E metadata | แก้เป็น "ไม่ทราบอุณหภูมิ" | ภาพมีจริง metadata เดิมผิด |
 | 2026-05-12 | HSV H range | ขยายเป็น [10°, 90°] | รับใบน้ำตาลจัดที่ D7–D8 (hue ~10°–25°) |
 | 2026-05-12 | Δ-features baseline | แยกตาม view (top/side) | top กับ side มี feature ต่างกันมาก |
+| 2026-05-14 | เพิ่ม texture features เข้า model | ใส่ทั้ง 4 ตัว (contrast/correlation/energy/homogeneity) | ทดลองแล้วทุก metric ดีขึ้น (MAE -0.027, R² +0.011) |
+| 2026-05-14 | เก็บ xgb_model.json เก่าไว้ | เก็บเป็น backup ไม่ลบ | ใช้อ้างอิงย้อนหลังได้ แต่ incompatible กับ FEATURE_COLS ปัจจุบัน |
