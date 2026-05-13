@@ -329,6 +329,45 @@ streamlit run app.py
 
 ---
 
+## Phase 8 — Shelf Life Prediction
+**วันที่:** 2026-05-13
+**Git tag:** `phase-8-done`
+
+### สิ่งที่ทำ
+- `src/grade.py`: เพิ่ม `predict_shelf_life()` + constants `MARKETABILITY_DAY`, `UNUSABLE_DAY`, `FRESH_DAY`
+- `src/inference.py`: เพิ่ม `shelf_life` ใน output dict
+- `app.py`: ปรับ UI ใหม่ให้ shelf life เด่นกว่า grade
+
+### การตัดสินใจสำคัญ
+- ใช้ calibrated thresholds (3.6 / 5.6) แทน round number (4.0 / 6.0) ที่ระบุใน requirement — sync กับ grade boundaries Phase 5 จริง
+- Constants ดึงจาก THRESHOLDS โดยตรง: `MARKETABILITY_DAY = THRESHOLDS['B'][1]`, `UNUSABLE_DAY = THRESHOLDS['C'][1]`
+- Status boundaries ใช้ THRESHOLDS เช่นกัน: fresh < 1.2, good 1.2–3.6, warning 3.6–5.6, expired ≥ 5.6
+- อ้างอิง Kader et al. (1973) OVQ scale ใน docstring และ UI
+
+### UI Structure
+1. 🥬 Shelf Life Remaining (เด่นสุด) — Marketable days / Usable days / Status badge
+2. 📊 Current Quality Tier — Grade + Kader OVQ + days range
+3. 🔬 Model Output — predicted day / warnings
+4. 🧪 Feature Breakdown (expander)
+
+### ผล Acceptance Tests
+| Input | mkt | unusable | status | ผล |
+|-------|-----|----------|--------|----|
+| day=1.8 | 1.8 | 3.8 | good | ✅ |
+| day=5.5 | 0.0 | 0.1 | warning | ✅ |
+| day=7.0 | 0.0 | 0.0 | expired | ✅ |
+| day=0.5 | 3.1 | 5.1 | fresh | ✅ |
+
+### Acceptance
+- ✅ `predict_shelf_life()` ผ่านทุก acceptance test
+- ✅ inference.py output มี `shelf_life` key
+- ✅ app.py แสดง shelf life เด่นกว่า grade
+- ✅ แสดง Kader OVQ mapping ชัดเจน
+- ✅ Feature breakdown expander ทำงาน
+- ✅ commit + tag phase-8-done
+
+---
+
 ## Known Issues / TODO
 
 | # | รายการ | Phase ที่เกี่ยวข้อง | สถานะ |

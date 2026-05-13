@@ -4,11 +4,17 @@ import pandas as pd
 # Grade boundary (day-based): A=D0-1, B=D2-3, C=D4-5, D=D6-8
 # ปรับได้โดยเปลี่ยน THRESHOLDS เท่านั้น ไม่ต้อง retrain
 THRESHOLDS = {
-    'A': (0.0, 1.5),   # predicted_day < 1.5
-    'B': (1.5, 3.5),   # 1.5 <= predicted_day < 3.5
-    'C': (3.5, 5.5),   # 3.5 <= predicted_day < 5.5
-    'D': (5.5, 9.0),   # predicted_day >= 5.5
+    'A': (0.0, 1.2),   # predicted_day < 1.2
+    'B': (1.2, 3.6),   # 1.2 <= predicted_day < 3.6
+    'C': (3.6, 5.6),   # 3.6 <= predicted_day < 5.6
+    'D': (5.6, 9.0),   # predicted_day >= 5.6
 }
+
+# Shelf life thresholds — ดึงจาก THRESHOLDS เพื่อให้ sync กับ grade boundaries เสมอ
+# Kader et al. (1973) OVQ scale: OVQ≤5 = marketability limit, OVQ≤3 = unusable
+MARKETABILITY_DAY = THRESHOLDS['B'][1]   # B→C boundary = 3.6
+UNUSABLE_DAY      = THRESHOLDS['C'][1]   # C→D boundary = 5.6
+FRESH_DAY         = THRESHOLDS['A'][1]   # A→B boundary = 1.2
 GRADE_ORDER = ['A', 'B', 'C', 'D']
 
 
@@ -94,6 +100,33 @@ def calibrate_thresholds(
         'best_t2': round(best_t[1], 2),  # B/C boundary
         'best_t3': round(best_t[2], 2),  # C/D boundary
         'best_accuracy': round(best_acc, 4),
+    }
+
+
+def predict_shelf_life(predicted_day: float) -> dict:
+    """
+    คำนวณ shelf life จาก predicted_day
+    อ้างอิง Kader et al. (1973) OVQ scale:
+      - Marketability limit (OVQ ≤ 5) = B→C boundary = MARKETABILITY_DAY
+      - Unusable threshold  (OVQ ≤ 3) = C→D boundary = UNUSABLE_DAY
+    Status ดึงจาก THRESHOLDS เพื่อ sync กับ grade A/B/C/D เสมอ
+    """
+    days_to_marketability = round(max(0.0, MARKETABILITY_DAY - predicted_day), 1)
+    days_to_unusable      = round(max(0.0, UNUSABLE_DAY - predicted_day), 1)
+
+    if predicted_day < FRESH_DAY:
+        status = "fresh"
+    elif predicted_day < MARKETABILITY_DAY:
+        status = "good"
+    elif predicted_day < UNUSABLE_DAY:
+        status = "warning"
+    else:
+        status = "expired"
+
+    return {
+        "days_to_marketability_limit": days_to_marketability,
+        "days_to_unusable":            days_to_unusable,
+        "status":                      status,
     }
 
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from src.features.color import extract_color
 from src.features.texture import extract_texture
-from src.grade import day_to_grade, _apply_thresholds
+from src.grade import day_to_grade, predict_shelf_life, _apply_thresholds
 from src.model import FEATURE_COLS, load_model
 from src.preprocess import preprocess_pipeline
 from src.segment import MIN_AREA_RATIO, segment_lettuce
@@ -75,10 +75,11 @@ def predict(
     gok_extrapolation = (variety == "GOK") and (predicted_day > 6.5)
 
     return {
-        "predicted_day":    round(predicted_day, 2),
-        "grade":            grade,
-        "low_confidence":   low_confidence,
+        "predicted_day":     round(predicted_day, 2),
+        "grade":             grade,
+        "shelf_life":        predict_shelf_life(predicted_day),
+        "low_confidence":    low_confidence,
         "gok_extrapolation": gok_extrapolation,
-        "area_ratio":       round(area_ratio, 4),
-        "features":         {k: round(v, 4) for k, v in all_feats.items()},
+        "area_ratio":        round(area_ratio, 4),
+        "features":          {k: round(v, 4) for k, v in all_feats.items()},
     }
