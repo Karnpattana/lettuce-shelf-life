@@ -73,8 +73,8 @@ def test_no_extra_unexpected_cols(green_patch, green_mask):
     color_feats = extract_color(green_patch, green_mask)
     texture_feats = extract_texture(green_patch, green_mask)
 
-    # keys ที่ extractor ผลิตแต่ไม่ได้ใช้ใน model — ตั้งใจ (documented ใน CLAUDE.md)
-    known_keys = set(FEATURE_COLS) | {"b_std", "contrast", "correlation", "energy", "homogeneity"}
+    # b_std ผลิตแต่ไม่ได้ใช้ใน model — feature importance ต่ำ ตัดออกตอน feature selection
+    known_keys = set(FEATURE_COLS) | {"b_std"}
     produced_keys = set(color_feats) | set(texture_feats) | {"area_ratio", "variety_enc"}
 
     unexpected = produced_keys - known_keys
@@ -123,6 +123,7 @@ def test_feature_cols_order_is_pinned():
         'a_mean', 'area_ratio', 'pct_green', 'pct_yellow', 'pct_brown',
         'L_mean', 'b_mean', 'a_std', 'L_std',
         'variety_enc',
+        'contrast', 'correlation', 'energy', 'homogeneity',
     ]
     assert FEATURE_COLS == expected_order, (
         "FEATURE_COLS ถูกเปลี่ยนลำดับ!\n"

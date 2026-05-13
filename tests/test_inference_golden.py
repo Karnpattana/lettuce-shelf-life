@@ -2,8 +2,8 @@
 Test #3 — Golden image regression
 ยืนยันว่า predict() คืน grade และ predicted_day ที่ถูกต้องบนรูปที่รู้ผลอยู่แล้ว
 
-ค่า golden ถูกยึดไว้จากการรัน predict() บนโมเดล final (xgb_model.json)
-ที่ได้จาก training ครั้งสุดท้าย (Phase 9)
+ค่า golden ยึดจากโมเดล xgb_model_texture.json (14 features, Phase 9b)
+  MAE=0.481 วัน, R²=0.904, Grade accuracy=80.55%
 
 ถ้า test เหล่านี้พัง หมายความว่า:
   - model ถูก retrain หรือเปลี่ยน → ต้องอัปเดตค่า golden
@@ -16,11 +16,11 @@ from pathlib import Path
 import pytest
 
 DATA_DIR = Path("data/raw")
-MODEL_PATH = Path("models/xgb_model.json")
+MODEL_PATH = Path("models/xgb_model_texture.json")
 
 pytestmark = pytest.mark.skipif(
     not DATA_DIR.exists() or not MODEL_PATH.exists(),
-    reason="data/raw/ หรือ models/xgb_model.json ไม่มีอยู่ (ข้าม CI)",
+    reason="data/raw/ หรือ models/xgb_model_texture.json ไม่มีอยู่ (ข้าม CI)",
 )
 
 # tolerance สำหรับ predicted_day (± วัน)
@@ -48,10 +48,10 @@ def test_cos_d0_grade_and_status():
 
 
 def test_cos_d0_predicted_day_near_zero():
-    """golden: 0.58 — ยอมรับ ± 0.5 วัน"""
+    """golden: 0.42 — ยอมรับ ± 0.5 วัน"""
     out = run("COS01_A_D0_E_side.jpg", "COS")
-    assert abs(out["predicted_day"] - 0.58) <= DAY_TOL, (
-        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=0.58"
+    assert abs(out["predicted_day"] - 0.42) <= DAY_TOL, (
+        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=0.42"
     )
 
 
@@ -67,10 +67,10 @@ def test_cos_d4_grade_and_status():
 
 
 def test_cos_d4_predicted_day():
-    """golden: 3.63"""
+    """golden: 4.15"""
     out = run("COS01_A_D4_E_side.jpg", "COS")
-    assert abs(out["predicted_day"] - 3.63) <= DAY_TOL, (
-        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=3.63"
+    assert abs(out["predicted_day"] - 4.15) <= DAY_TOL, (
+        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=4.15"
     )
 
 
@@ -87,10 +87,10 @@ def test_cos_d8_grade_and_status():
 
 
 def test_cos_d8_predicted_day():
-    """golden: 7.83"""
+    """golden: 7.61"""
     out = run("COS01_A_D8_M_side.jpg", "COS")
-    assert abs(out["predicted_day"] - 7.83) <= DAY_TOL, (
-        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=7.83"
+    assert abs(out["predicted_day"] - 7.61) <= DAY_TOL, (
+        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=7.61"
     )
 
 
@@ -106,15 +106,15 @@ def test_gok_d0_grade_and_status():
 
 
 def test_gok_d0_predicted_day():
-    """golden: 0.32"""
+    """golden: 0.10"""
     out = run("GOK01_A_D0_E_side.jpg", "GOK")
-    assert abs(out["predicted_day"] - 0.32) <= DAY_TOL, (
-        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=0.32"
+    assert abs(out["predicted_day"] - 0.10) <= DAY_TOL, (
+        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=0.10"
     )
 
 
 # ---------------------------------------------------------------------------
-# GOK — วันที่ 6 (ต้องได้เกรด C, ตรวจ gok_extrapolation flag)
+# GOK — วันที่ 6 (ตรวจ gok_extrapolation flag)
 # ---------------------------------------------------------------------------
 
 def test_gok_d6_grade():
@@ -125,15 +125,14 @@ def test_gok_d6_grade():
 
 
 def test_gok_d6_predicted_day():
-    """golden: 5.37"""
+    """golden: 5.69"""
     out = run("GOK01_A_D6_E_side.jpg", "GOK")
-    assert abs(out["predicted_day"] - 5.37) <= DAY_TOL, (
-        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=5.37"
+    assert abs(out["predicted_day"] - 5.69) <= DAY_TOL, (
+        f"predicted_day={out['predicted_day']} เบี่ยงเกิน {DAY_TOL} วัน จาก golden=5.69"
     )
 
 
 def test_gok_d6_extrapolation_flag():
-    """GOK D6 ที่ predicted_day ≈ 5.37 ยังอยู่ใต้ขีด 6.5 → ไม่ควร set gok_extrapolation"""
     out = run("GOK01_A_D6_E_side.jpg", "GOK")
     if out["predicted_day"] <= 6.5:
         assert out["gok_extrapolation"] is False

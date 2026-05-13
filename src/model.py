@@ -10,6 +10,8 @@ FEATURE_COLS = [
     'a_mean', 'area_ratio', 'pct_green', 'pct_yellow', 'pct_brown',
     'L_mean', 'b_mean', 'a_std', 'L_std',
     'variety_enc',  # COS=0, GOK=1
+    # texture features (GLCM) — เพิ่ม Phase 9b, ให้ MAE ดีขึ้น ~0.027 วัน, R²=0.904
+    'contrast', 'correlation', 'energy', 'homogeneity',
 ]
 TARGET = 'day'
 

@@ -10,7 +10,9 @@ from src.preprocess import preprocess_pipeline
 from src.segment import MIN_AREA_RATIO, segment_lettuce
 from src.variety_classifier import predict_variety
 
-DEFAULT_MODEL_PATH = Path("models/xgb_model.json")
+DEFAULT_MODEL_PATH = Path("models/xgb_model_texture.json")
+# xgb_model.json = โมเดลเดิม (10 features, MAE=0.507, R²=0.893) — เก็บไว้เป็น backup
+# ใช้ร่วมกับ FEATURE_COLS ปัจจุบัน (14 features) ไม่ได้ — จะ crash ด้วย feature shape mismatch
 
 
 def predict(
