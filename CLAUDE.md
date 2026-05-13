@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project State
 
-Phase 0–9 complete + Phase 9b (texture model upgrade) complete.
+Phase 0–9 complete + Phase 9b (texture model) + Phase 9c (deployment) complete.  
+**Live app:** https://lettuce-shelf-life-3m4f7pz9jqt7afybkuavvv.streamlit.app  
 See `DEVLOG.md` for full decision log, known issues, and per-phase acceptance criteria.
 
 ## Commands
@@ -100,6 +101,8 @@ image file
 - **GOK has no D8 images** — the model is extrapolating for GOK when predicted_day > 6.5. The `gok_extrapolation` flag handles this.
 - **Shelf life constants must derive from `THRESHOLDS`**, not be hardcoded independently. If `THRESHOLDS` changes, shelf life boundaries update automatically.
 - `data/raw/` and `data/segmented/` are gitignored — never assume they are present in CI.
+- **Use `opencv-python-headless`** (not `opencv-python`) in `requirements.txt` — headless variant works on Streamlit Cloud and other server environments.
+- **`models/variety_classifier.pkl` must stay tracked in git** — `.gitignore` was updated to allow `.pkl` in `models/`.
 
 ## Dataset
 

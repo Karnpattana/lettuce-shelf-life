@@ -459,6 +459,29 @@ streamlit run app.py
 
 ---
 
+## Phase 9c — Streamlit Cloud Deployment
+**วันที่:** 2026-05-14  
+**URL:** https://lettuce-shelf-life-3m4f7pz9jqt7afybkuavvv.streamlit.app
+
+### สิ่งที่ทำ
+- Deploy app บน Streamlit Community Cloud จาก repo `Karnpattana/lettuce-shelf-life` branch `main`
+
+### Bugs ที่พบและแก้ระหว่าง deploy
+
+| Bug | สาเหตุ | การแก้ |
+|-----|--------|--------|
+| `feature shape mismatch, expected 10, got 14` | `app.py` hardcode `MODEL_PATH = Path("models/xgb_model.json")` (โมเดลเก่า) ไว้ตั้งแต่ก่อน Phase 9b | เปลี่ยนเป็น `MODEL_PATH = DEFAULT_MODEL_PATH` ดึงจาก `inference.py` |
+| `ImportError: import cv2` | `opencv-python` ต้องการ GUI/display system libs ที่ไม่มีบน headless server | เปลี่ยนเป็น `opencv-python-headless` ใน `requirements.txt` |
+| `variety_classifier.pkl` หาย | `.gitignore` มีบรรทัด `models/*.pkl` กัน .pkl ทั้งหมด | เอา `models/*.pkl` ออกจาก `.gitignore` แล้ว commit ไฟล์เข้า repo |
+| `Pillow` หาย | `requirements.txt` ไม่มี Pillow แต่ `app.py` ใช้ `from PIL import Image` | เพิ่ม `Pillow>=9.0.0` ใน `requirements.txt` |
+
+### Acceptance
+- ✅ app ขึ้นที่ Streamlit Cloud ไม่มี error
+- ✅ inference ทำงานได้จริงบน production
+- ✅ commit `fdf44ba`, `b2f00ff`, `6ae6115` push แล้ว
+
+---
+
 ## Known Issues / TODO
 
 | # | รายการ | Phase ที่เกี่ยวข้อง | สถานะ |
