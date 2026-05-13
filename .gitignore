@@ -6,7 +6,6 @@ data/features_partial.csv
 data/segment_issues.csv
 
 # Models
-models/*.pkl
 models/*.pt
 
 # Python
