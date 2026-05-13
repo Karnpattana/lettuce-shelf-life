@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project State
 
-Phase 0–8 complete. Phase 9 (Variety Auto-Detect) is next.
+Phase 0–9 complete. All features implemented.
 See `DEVLOG.md` for full decision log, known issues, and per-phase acceptance criteria.
 
 ## Commands
@@ -43,7 +43,8 @@ image file
   └─ src/features/texture.py  GLCM on L* channel (contrast, correlation, energy, homogeneity)
   └─ src/model.py             XGBoost regressor — FEATURE_COLS, trained with GroupKFold(5) by plant_id
   └─ src/grade.py             THRESHOLDS dict → day_to_grade, predict_shelf_life
-  └─ src/inference.py         predict() — full pipeline, returns grade + shelf_life + flags
+  └─ src/variety_classifier.py  predict_variety() — XGBoost, 92.4% GroupKFold CV
+  └─ src/inference.py         predict() — full pipeline, returns grade + shelf_life + variety + flags
   └─ app.py                   Streamlit UI
 ```
 
@@ -61,8 +62,11 @@ image file
 
 ```python
 {
-  "predicted_day":     float,        # 0.0–8.0
-  "grade":             "A"|"B"|"C"|"D",
+  "variety":             "COS"|"GOK",
+  "variety_confidence":  float,        # 0.0–1.0
+  "variety_source":      "auto"|"user",
+  "predicted_day":       float,        # 0.0–8.0
+  "grade":               "A"|"B"|"C"|"D",
   "shelf_life": {
       "days_to_marketability_limit": float,
       "days_to_unusable":            float,

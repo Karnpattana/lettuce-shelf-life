@@ -24,6 +24,11 @@ STATUS_CONFIG = {
     "expired": {"emoji": "🔴", "label": "Expired", "color": "#e74c3c"},
 }
 
+VARIETY_DISPLAY = {
+    "COS": "Cos (Romaine)",
+    "GOK": "Green Oak",
+}
+
 FEATURE_THAI = {
     "a_mean":     "a* เฉลี่ย (แดง/เขียว)",
     "pct_yellow": "สัดส่วนเหลือง",
@@ -44,7 +49,19 @@ st.caption("อัปโหลดภาพผักกาดหอม → ระ
 # --- Sidebar ---
 with st.sidebar:
     st.header("ตั้งค่า")
-    variety = st.radio("พันธุ์ผัก", ["COS", "GOK"], horizontal=True)
+
+    variety_option = st.radio(
+        "พันธุ์ผัก",
+        ["🤖 Auto-detect (แนะนำ)", "Cos (Romaine)", "Green Oak"],
+        index=0,
+    )
+    if variety_option == "🤖 Auto-detect (แนะนำ)":
+        variety_input = None
+    elif variety_option == "Cos (Romaine)":
+        variety_input = "COS"
+    else:
+        variety_input = "GOK"
+
     st.markdown("---")
     st.markdown(
         "**Grade & Kader OVQ**\n"
@@ -62,7 +79,7 @@ with st.sidebar:
         "Kader et al. (1973)"
     )
     st.markdown("---")
-    st.caption("Phase 8 Demo — Lettuce Shelf Life Prediction\nThesis 2026")
+    st.caption("Phase 9 Demo — Lettuce Shelf Life Prediction\nThesis 2026")
 
 # --- Upload ---
 uploaded = st.file_uploader(
@@ -81,7 +98,8 @@ col_img, col_meta = st.columns([2, 1])
 with col_img:
     st.image(img_pil, caption=uploaded.name, use_container_width=True)
 with col_meta:
-    st.markdown(f"**พันธุ์:** {variety}")
+    mode_label = "Auto-detect" if variety_input is None else "User-specified"
+    st.markdown(f"**พันธุ์:** {mode_label}")
     st.markdown(f"**ขนาดภาพ:** {img_pil.width} × {img_pil.height} px")
 
 # --- Predict ---
@@ -90,19 +108,33 @@ with st.spinner("กำลังวิเคราะห์ภาพ..."):
         img_pil.convert("RGB").save(tmp.name, format="JPEG")
         tmp_path = Path(tmp.name)
     try:
-        result = predict(tmp_path, variety, model_path=MODEL_PATH)
+        result = predict(tmp_path, variety=variety_input, model_path=MODEL_PATH)
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาด: {e}")
         st.stop()
     finally:
         tmp_path.unlink(missing_ok=True)
 
-sl   = result["shelf_life"]
+sl    = result["shelf_life"]
 grade = result["grade"]
 gcfg  = GRADE_CONFIG[grade]
 scfg  = STATUS_CONFIG[sl["status"]]
 
 st.markdown("---")
+
+# --- 0. Variety Result ---
+variety_name = VARIETY_DISPLAY.get(result["variety"], result["variety"])
+if result["variety_source"] == "auto":
+    conf_pct = result["variety_confidence"] * 100
+    variety_badge = f"🥗 **Variety: {variety_name}** — auto-detected ({conf_pct:.0f}% confidence)"
+    st.markdown(variety_badge)
+    if result["variety_confidence"] < 0.75:
+        st.warning(
+            f"⚠️ ความมั่นใจในการตรวจจับพันธุ์ต่ำ ({conf_pct:.0f}%) — "
+            "ลองเลือกพันธุ์เองใน Sidebar เพื่อผลที่แม่นยำขึ้น"
+        )
+else:
+    st.markdown(f"🥗 **Variety: {variety_name}** — user-specified")
 
 # --- 1. Shelf Life (เด่นสุด) ---
 st.subheader("🥬 Shelf Life Remaining")
@@ -193,5 +225,6 @@ with st.expander("🧪 Feature Breakdown — proves it's ML, not just day→grad
     st.caption(
         f"area_ratio = {result['area_ratio']:.4f}  |  "
         f"low_confidence = {result['low_confidence']}  |  "
-        f"gok_extrapolation = {result['gok_extrapolation']}"
+        f"gok_extrapolation = {result['gok_extrapolation']}  |  "
+        f"variety_confidence = {result['variety_confidence']:.4f}"
     )
