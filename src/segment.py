@@ -11,6 +11,8 @@ from src.preprocess import preprocess_pipeline
 
 # HSV range สำหรับ lettuce — ขยาย H ลงถึง 10° เพื่อรับใบน้ำตาลจัด D7–D8
 # V > 25 กรองพื้นหลังดำออก (พื้นหลัง V ≈ 0, ใบที่มืดสุดยัง V > 25)
+# หมายเหตุ: range [10°,90°] ครอบ yellow-green ของใบผักจริง
+# pure green (H=120°) อยู่นอก range โดยตั้งใจ เพราะใบผักบนพื้นดำไม่มีสีเขียวสดแบบนั้น
 HSV_H_MIN = 10   # hue lower bound (degrees / 2 ใน OpenCV = 5)
 HSV_H_MAX = 90   # hue upper bound (degrees / 2 ใน OpenCV = 45)
 HSV_V_MIN = 25   # brightness lower bound
