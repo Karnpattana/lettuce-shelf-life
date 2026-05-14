@@ -482,6 +482,41 @@ streamlit run app.py
 
 ---
 
+## Phase 9d — Batch & OOF Evaluation
+**วันที่:** 2026-05-14
+
+### สิ่งที่ทำ
+- `scripts/batch_evaluate.py`: รัน `predict()` บนทุกภาพใน `data/raw/` (2,920 ภาพ) บันทึกผล 37 คอลัมน์ลง `results/batch_eval.csv`
+- `scripts/oof_evaluate.py`: GroupKFold(5) OOF — แต่ละภาพถูก predict ด้วย fold ที่ไม่เคยเห็นมัน (out-of-sample จริง) บันทึกลง `results/oof_predictions.csv`
+
+### OOF Results (GroupKFold 5, 2,920 ภาพ)
+
+| Metric | OOF (out-of-sample) | In-sample (batch_eval) |
+|--------|--------------------|-----------------------|
+| MAE | **0.4808 วัน** | 0.2593 วัน |
+| RMSE | **0.6320 วัน** | 0.3362 วัน |
+| R2 | **0.9035** | ~1.0 |
+| Grade accuracy | **80.55%** | 93.39% |
+| Adjacent accuracy | **99.93%** | 100.00% |
+
+OOF = ตัวเลขที่น่าเชื่อถือสำหรับ report ผล — in-sample เป็นแค่การตรวจ pipeline
+
+### Breakdown by variety (OOF)
+| Variety | MAE | Grade acc | n |
+|---------|-----|-----------|---|
+| COS | 0.4995 | 80.88% | 1480 |
+| GOK | 0.4615 | 80.21% | 1440 |
+
+### MAE by true day (OOF)
+D0=0.609, D1=0.491, D2=0.482, D3=0.471, D4=0.431, D5=0.443, D6=0.427, D7=0.617, D8=0.642
+- D0/D7/D8 error สูงกว่า: D0 ยังดูสดเหมือนกัน, D7-D8 มีภาพน้อย (160/40 ภาพ)
+
+### Acceptance
+- OOF MAE ตรงกับค่าที่บันทึกใน Phase 9b (0.4808) — ยืนยันว่าตอน retrain บันทึกถูก
+- commit `641771a`
+
+---
+
 ## Known Issues / TODO
 
 | # | รายการ | Phase ที่เกี่ยวข้อง | สถานะ |
