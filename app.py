@@ -1,4 +1,5 @@
 """Streamlit demo — Lettuce Shelf Life Prediction"""
+import io
 from pathlib import Path
 import tempfile
 
@@ -91,7 +92,7 @@ if uploaded is None:
     st.stop()
 
 # --- Load image ---
-img_pil = Image.open(uploaded)
+img_pil = Image.open(io.BytesIO(uploaded.read()))
 
 # --- Predict ---
 with st.spinner("กำลังวิเคราะห์ภาพ..."):
@@ -116,7 +117,7 @@ variety_name = VARIETY_DISPLAY.get(result["variety"], result["variety"])
 col_img, col_result = st.columns([2, 1])
 
 with col_img:
-    st.image(img_pil, caption=uploaded.name, use_container_width=True)
+    st.image(img_pil, caption=uploaded.name, width="stretch")
 
 with col_result:
     # ชนิดผัก
